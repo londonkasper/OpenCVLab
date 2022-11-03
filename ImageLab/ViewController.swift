@@ -16,12 +16,26 @@ class ViewController: UIViewController   {
     var filters : [CIFilter]! = nil
     var videoManager:VideoAnalgesic! = nil
     let pinchFilterIndex = 2
-    var detector:CIDetector! = nil
+    //var detector:CIDetector! = nil
     let bridge = OpenCVBridge()
     
     //MARK: Outlets in view
     @IBOutlet weak var flashSlider: UISlider!
     @IBOutlet weak var stageLabel: UILabel!
+    
+    lazy var detector:CIDetector! = {
+        // create dictionary for face detection
+        // HINT: you need to manipulate these properties for better face detection efficiency
+        let optsDetector = [CIDetectorAccuracy:CIDetectorAccuracyHigh,
+                            CIDetectorTracking:true] as [String : Any]
+        
+        // setup a face detector in swift
+        let detector = CIDetector(ofType: CIDetectorTypeFace,
+                                  context: self.videoManager.getCIContext(), // perform on the GPU is possible
+            options: (optsDetector as [String : AnyObject]))
+        
+        return detector
+    }()
     
     //MARK: ViewController Hierarchy
     override func viewDidLoad() {
