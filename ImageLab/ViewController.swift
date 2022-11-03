@@ -5,6 +5,7 @@
 //  Created by Eric Larson
 //  Copyright © Eric Larson. All rights reserved.
 //
+// Modified by London Kasper, Jeremy Waibel, Carys LeKander
 
 import UIKit
 import AVFoundation
@@ -40,9 +41,9 @@ class ViewController: UIViewController   {
         
         // setup a face detector in swift
         self.detector = CIDetector(ofType: CIDetectorTypeFace,
-                                  context: self.videoManager.getCIContext(), // perform on the GPU is possible
+                                  context: self.videoManager.getCIContext(), // perform on the GPU if possible
             options: (optsDetector as [String : AnyObject]))
-        
+        self.setupFilters()
         self.videoManager.setProcessingBlock(newProcessBlock: self.processImageSwift)
         
         if !videoManager.isRunning{
@@ -107,6 +108,42 @@ class ViewController: UIViewController   {
         
     }
     
+    //MARK: Setup filtering
+    func setupFilters(){
+            filters = []
+            
+            // starting values for filter
+            let filterPinch = CIFilter(name:"CIBumpDistortion")!
+            filterPinch.setValue(-0.5, forKey: "inputScale")
+            filterPinch.setValue(75, forKey: "inputRadius")
+            filters.append(filterPinch)
+            
+    }
+        
+        //MARK: Apply filters and apply feature detectors
+    func applyFiltersToFaces(inputImage:CIImage,features:[CIFaceFeature])->CIImage{
+            var retImage = inputImage
+            var filterCenter = CGPoint() // for saving the center of face
+            var radius = 75
+            
+            for f in features { // for each face
+                //set where to apply filter
+                filterCenter.x = f.bounds.midX
+                filterCenter.y = f.bounds.midY
+                radius = Int(f.bounds.width/2) // for setting the radius of the bump
+                
+                //do for each filter (assumes all filters have property, "inputCenter")
+                for filt in filters{
+                    filt.setValue(retImage, forKey: kCIInputImageKey)
+                    filt.setValue(CIVector(cgPoint: filterCenter), forKey: "inputCenter")
+                    filt.setValue(radius, forKey: "inputRadius")
+                    //  also manipulate the radius of the filter based on face size!
+                    retImage = filt.outputImage!
+                }
+            }
+            return retImage
+    }
+        
     
     // change the type of processing done in OpenCV
     @IBAction func swipeRecognized(_ sender: UISwipeGestureRecognizer) {
