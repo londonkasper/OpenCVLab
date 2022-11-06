@@ -425,7 +425,33 @@ using namespace cv;
     return retImage;
 }
 
+-(double)processFinger:(bool) isFlashOn {
+    //Returns the average red channel if finger is detected, else returns -1
+    
+    cv::Mat image_copy;
 
+    char text[50];
+    Scalar avgPixelIntensity;
+    
+    cvtColor(_image, image_copy, CV_BGRA2BGR); // get rid of alpha for processing
+    avgPixelIntensity = cv::mean( image_copy );
+    
+    //swap positions of red and blue
+    //sprintf(text,"Avg. B: %.0f, G: %.0f, R: %.0f", avgPixelIntensity.val[2],avgPixelIntensity.val[1],avgPixelIntensity.val[0]);
+    //std::cout << text << std::endl;
+    //cv::putText(_image, text, cv::Point(0, 50), FONT_HERSHEY_PLAIN, 0.75, Scalar::all(255), 1, 2);
+
+    if(!isFlashOn && avgPixelIntensity.val[0] > 100 && avgPixelIntensity.val[0] < 160
+       && avgPixelIntensity.val[1] < 5 && avgPixelIntensity.val[2] < 10) {
+        return avgPixelIntensity.val[0];
+    }
+    if(isFlashOn && avgPixelIntensity.val[0] > 170 && avgPixelIntensity.val[0] < 230
+       && avgPixelIntensity.val[2] < 20 && avgPixelIntensity.val[1] < 15) {
+        
+        return avgPixelIntensity.val[0];
+    }
+    return -1.0;
+}
 
 
 @end
