@@ -114,6 +114,7 @@ class ModuleBViewController: UIViewController, ChartViewDelegate {
     }
     
         func updateCounter(newData:Double) {
+            //https://stackoverflow.com/questions/35339479/xcode-dynamic-live-update-line-chart
             if(currFrame==0) {
                 //setup new view
                 self.lineChartView.delegate = self
