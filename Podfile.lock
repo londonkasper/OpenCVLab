@@ -4,19 +4,23 @@ PODS:
   - Charts/Core (4.1.0):
     - SwiftAlgorithms (~> 1.0)
   - SwiftAlgorithms (1.0.0)
+  - TinyConstraints (4.0.2)
 
 DEPENDENCIES:
   - Charts
+  - TinyConstraints
 
 SPEC REPOS:
   trunk:
     - Charts
     - SwiftAlgorithms
+    - TinyConstraints
 
 SPEC CHECKSUMS:
   Charts: 354f86803d11d9c35de280587fef50d1af063978
   SwiftAlgorithms: 38dda4731d19027fdeee1125f973111bf3386b53
+  TinyConstraints: 7b7ccc0c485bb3bb47082138ff28bc33cd49897f
 
-PODFILE CHECKSUM: 6c7d64e102479f76b04370e660cca9ed15cb20dc
+PODFILE CHECKSUM: e6c4c5be4aa51913b2899706b10ca9f84b5c7021
 
 COCOAPODS: 1.11.3

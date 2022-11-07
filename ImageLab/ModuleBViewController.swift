@@ -8,8 +8,12 @@
 
 import UIKit
 import Charts
+import TinyConstraints
 
 class ModuleBViewController: UIViewController, ChartViewDelegate {
+
+    @IBOutlet weak var lineChartView: LineChartView!
+    var currFrame = 0
 
     var videoManager:VideoAnalgesic! = nil
     let bridge = OpenCVBridge()
@@ -18,11 +22,12 @@ class ModuleBViewController: UIViewController, ChartViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = nil
-
+        
+        self.lineChartView.backgroundColor = .black
+        
         self.videoManager = VideoAnalgesic(mainView: self.view)
         self.videoManager.setCameraPosition(position: AVCaptureDevice.Position.back)
         
-        self.createGraph()
         self.videoManager.setProcessingBlock(newProcessBlock: self.processImageSwift)
         if !videoManager.isRunning{
             videoManager.start()
@@ -37,8 +42,7 @@ class ModuleBViewController: UIViewController, ChartViewDelegate {
             using cocoa pods charts package (idk if you need to setup on your mac)
          */
         //Setup image to be processable
-        var retImage = inputImage
-        self.bridge.setTransforms(self.videoManager.transform)
+        let retImage = inputImage
         self.bridge.setImage(retImage, withBounds: retImage.extent, andContext: self.videoManager.getCIContext())
         
         let averageRed = self.bridge.processFinger(isFlashOn)
@@ -49,10 +53,10 @@ class ModuleBViewController: UIViewController, ChartViewDelegate {
                 isFlashOn = true
                 
                 //Give the flash enough time to get better data
-                sleep(1)
+                sleep(2) //will sleep for 2 second
             }
         } else {
-            //finger has been detected
+            //finger has been detected previously
 
             //See if finger moved off
             if(averageRed == -1.0) {
@@ -60,26 +64,40 @@ class ModuleBViewController: UIViewController, ChartViewDelegate {
                 self.videoManager.turnOffFlash()
                 isFlashOn = false
                 //Restart data collecting
-
-                //Give the flash enough time to get better data
-                sleep(1)	
+                currFrame=0
+                DispatchQueue.main.async {
+                    self.lineChartView.clearValues()
+                }
+            } else {
+                //Main queue since i want live updates
+                DispatchQueue.main.async {
+                    self.updateCounter(newData: averageRed)
+                }
             }
         }
-        print(averageRed)
+        //print(averageRed)
         return retImage
     }
-
-    func createGraph() {
-//           self.chartView.delegate = self
-//           let set_a: LineChartDataSet = LineChartDataSet(values:[ChartDataEntry(x: Double(0), y: Double(0))], label: "voice")
-//           set_a.drawCirclesEnabled = false
-//           set_a.setColor(UIColor.blue)
-//
-//           let set_b: LineChartDataSet = LineChartDataSet(values: [ChartDataEntry(x: Double(0), y: Double(0))], label: "flow")
-//           set_b.drawCirclesEnabled = false
-//           set_b.setColor(UIColor.green)
-//
-//           self.chartView.data = LineChartData(dataSets: [set_a,set_b])
-//           timer = Timer.scheduledTimer(timeInterval: 0.010, target: self, selector: #selector(updateCounter), userInfo: nil, repeats: true)
-    }
+    
+        func updateCounter(newData:Double) {
+            if(currFrame==0) {
+                //setup new view
+                self.lineChartView.delegate = self
+                let set_a: LineChartDataSet = LineChartDataSet(entries:[ChartDataEntry(x: Double(0), y: newData)], label: "average red value per frame")
+                set_a.drawCirclesEnabled = false
+                set_a.setColor(UIColor.red)
+                
+                lineChartView.xAxis.labelPosition = .bottom
+                self.lineChartView.data = LineChartData(dataSets: [set_a])
+            } else {
+                self.lineChartView.data?.appendEntry(ChartDataEntry(x: Double(currFrame), y: newData), toDataSet: 0)
+                self.lineChartView.notifyDataSetChanged()
+                self.lineChartView.moveViewToX(Double(currFrame))
+                self.lineChartView.setVisibleXRange(minXRange: Double(1), maxXRange: Double(150))
+            }
+            currFrame = currFrame + 1
+        }
 }
+
+
+

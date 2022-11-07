@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		153E6942291847A700F6C94D /* RootViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153E6940291847A700F6C94D /* RootViewController.swift */; };
-		153E69452918480A00F6C94D /* ModuleBViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153E69432918480A00F6C94D /* ModuleBViewController.swift */; };
+		156F29D8291897400016BA7A /* ModuleBViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 156F29D7291897400016BA7A /* ModuleBViewController.swift */; };
 		B650B31B1D8340F0000114A1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B650B31A1D8340F0000114A1 /* AppDelegate.swift */; };
 		B650B31D1D8340F0000114A1 /* ModuleAViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B650B31C1D8340F0000114A1 /* ModuleAViewController.swift */; };
 		B650B3201D8340F0000114A1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B650B31E1D8340F0000114A1 /* Main.storyboard */; };
@@ -24,7 +24,7 @@
 
 /* Begin PBXFileReference section */
 		153E6941291847A700F6C94D /* Base */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Base; path = ImageLab/Base.lproj/RootViewController.swift; sourceTree = "<group>"; };
-		153E69442918480A00F6C94D /* Base */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Base; path = ImageLab/Base.lproj/ModuleBViewController.swift; sourceTree = "<group>"; };
+		156F29D7291897400016BA7A /* ModuleBViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ModuleBViewController.swift; path = ImageLab/ModuleBViewController.swift; sourceTree = "<group>"; };
 		190B4CF755F5CB76F5CF8E05 /* Pods-ImageLab.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ImageLab.debug.xcconfig"; path = "Target Support Files/Pods-ImageLab/Pods-ImageLab.debug.xcconfig"; sourceTree = "<group>"; };
 		3EBD8FBB99E690334C3B861C /* Pods_ImageLab.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ImageLab.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8CA33CAFDBE2A0D35592E457 /* Pods-ImageLab.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ImageLab.release.xcconfig"; path = "Target Support Files/Pods-ImageLab/Pods-ImageLab.release.xcconfig"; sourceTree = "<group>"; };
@@ -64,7 +64,6 @@
 				190B4CF755F5CB76F5CF8E05 /* Pods-ImageLab.debug.xcconfig */,
 				8CA33CAFDBE2A0D35592E457 /* Pods-ImageLab.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -79,6 +78,7 @@
 		B650B30E1D8340F0000114A1 = {
 			isa = PBXGroup;
 			children = (
+				156F29D7291897400016BA7A /* ModuleBViewController.swift */,
 				B67B72B61D996AB2008EDDE1 /* opencv2.framework */,
 				B650B34A1D83435A000114A1 /* ImageDSPUtils */,
 				B650B3191D8340F0000114A1 /* ImageLab */,
@@ -99,7 +99,6 @@
 		B650B3191D8340F0000114A1 /* ImageLab */ = {
 			isa = PBXGroup;
 			children = (
-				153E69432918480A00F6C94D /* ModuleBViewController.swift */,
 				153E6940291847A700F6C94D /* RootViewController.swift */,
 				B650B31A1D8340F0000114A1 /* AppDelegate.swift */,
 				B650B31C1D8340F0000114A1 /* ModuleAViewController.swift */,
@@ -209,11 +208,13 @@
 				"${PODS_ROOT}/Target Support Files/Pods-ImageLab/Pods-ImageLab-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Charts/Charts.framework",
 				"${BUILT_PRODUCTS_DIR}/SwiftAlgorithms/Algorithms.framework",
+				"${BUILT_PRODUCTS_DIR}/TinyConstraints/TinyConstraints.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Charts.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Algorithms.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TinyConstraints.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -250,10 +251,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				153E6942291847A700F6C94D /* RootViewController.swift in Sources */,
-				153E69452918480A00F6C94D /* ModuleBViewController.swift in Sources */,
 				B6E657991D95AA4500E75C60 /* VideoAnalgesic.swift in Sources */,
 				B650B31D1D8340F0000114A1 /* ModuleAViewController.swift in Sources */,
 				B650B31B1D8340F0000114A1 /* AppDelegate.swift in Sources */,
+				156F29D8291897400016BA7A /* ModuleBViewController.swift in Sources */,
 				B67B72BB1D996ADE008EDDE1 /* OpenCVBridge.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -267,14 +268,6 @@
 				153E6941291847A700F6C94D /* Base */,
 			);
 			name = RootViewController.swift;
-			sourceTree = "<group>";
-		};
-		153E69432918480A00F6C94D /* ModuleBViewController.swift */ = {
-			isa = PBXVariantGroup;
-			children = (
-				153E69442918480A00F6C94D /* Base */,
-			);
-			name = ModuleBViewController.swift;
 			sourceTree = "<group>";
 		};
 		B650B31E1D8340F0000114A1 /* Main.storyboard */ = {

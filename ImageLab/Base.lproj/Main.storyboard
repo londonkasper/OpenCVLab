@@ -17,7 +17,7 @@
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <connections>
-                        <segue destination="E8G-uo-ulM" kind="relationship" relationship="rootViewController" id="6Nq-Fx-fPf"/>
+                        <segue destination="E8G-uo-ulM" kind="relationship" relationship="rootViewController" id="fND-nk-If3"/>
                     </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ycg-px-j4d" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -75,21 +75,27 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Module B" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vie-37-iYK">
-                                <rect key="frame" x="151" y="89" width="72" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ubX-1E-0EO" customClass="LineChartView" customModule="Charts">
+                                <rect key="frame" x="0.0" y="497" width="375" height="170"/>
+                                <color key="backgroundColor" systemColor="linkColor"/>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="ubX-1E-0EO" firstAttribute="leading" secondItem="1gK-Xe-4Ga" secondAttribute="leadingMargin" constant="-16" id="1QU-0j-Yav"/>
+                            <constraint firstItem="ubX-1E-0EO" firstAttribute="bottom" secondItem="1gK-Xe-4Ga" secondAttribute="bottomMargin" id="6sn-3F-qPm"/>
+                            <constraint firstItem="ubX-1E-0EO" firstAttribute="centerX" secondItem="1gK-Xe-4Ga" secondAttribute="centerX" id="I9d-Kv-Akt"/>
+                            <constraint firstItem="ubX-1E-0EO" firstAttribute="top" secondItem="9fx-Mz-ohb" secondAttribute="bottom" constant="453" id="XDg-1Q-wyc"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="T4x-mb-HcC"/>
+                    <connections>
+                        <outlet property="lineChartView" destination="ubX-1E-0EO" id="6U2-RD-8H0"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="L0r-Fv-4YO" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="875" y="952"/>
+            <point key="canvasLocation" x="874.39999999999998" y="951.27436281859082"/>
         </scene>
         <!--ModuleA View Controller-->
         <scene sceneID="tne-QT-ifu">
@@ -174,6 +180,9 @@
     <resources>
         <systemColor name="darkTextColor">
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="linkColor">
+            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>

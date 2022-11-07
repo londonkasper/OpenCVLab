@@ -7,4 +7,5 @@ target 'ImageLab' do
 
   # Pods for ImageLab
     pod 'Charts'
+    pod 'TinyConstraints'
 end
