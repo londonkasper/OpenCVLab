@@ -13,12 +13,13 @@ import TinyConstraints
 class ModuleBViewController: UIViewController, ChartViewDelegate {
 
     @IBOutlet weak var lineChartView: LineChartView!
+    @IBOutlet weak var bpmLabel: UILabel!
     var currFrame = 0
-
+    var currData:[Double] = []
     var videoManager:VideoAnalgesic! = nil
     let bridge = OpenCVBridge()
     var isFlashOn = false;
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = nil
@@ -64,19 +65,52 @@ class ModuleBViewController: UIViewController, ChartViewDelegate {
                 self.videoManager.turnOffFlash()
                 isFlashOn = false
                 //Restart data collecting
+                currData.removeAll()
                 currFrame=0
                 DispatchQueue.main.async {
                     self.lineChartView.clearValues()
+                    self.bpmLabel.text = "Keep Holding!"
                 }
             } else {
                 //Main queue since i want live updates
                 DispatchQueue.main.async {
                     self.updateCounter(newData: averageRed)
                 }
+                currData.append(averageRed)
+                //take 5 seconds of data
+                if(currFrame >= 150 && currFrame%30 == 0) {
+                    calculateBPM()
+                }
             }
         }
         //print(averageRed)
         return retImage
+    }
+    func calculateBPM() {
+        //https://stackoverflow.com/questions/38311225/finding-local-maximum-points-of-a-given-data-set
+        var ascending = false
+            var peaks: [Double] = []
+            if var last = currData.first {
+                currData.dropFirst().forEach {
+                    if last < $0 {
+                        ascending = true
+                    }
+                    if $0 < last && ascending  {
+                        ascending = false
+                        peaks.append(last)
+                    }
+                    last = $0
+                }
+            }
+
+        let actualPeaks = Double(peaks.count)/2.3
+        let beatsPerSecond = actualPeaks/(Double(currFrame)/30.0)
+        let bpm = beatsPerSecond*60
+        //print(beatsPerSecond*60-15)
+        DispatchQueue.main.async {
+            self.bpmLabel.text = Int(bpm).description
+        }
+        //print(actualPeaks)
     }
     
         func updateCounter(newData:Double) {

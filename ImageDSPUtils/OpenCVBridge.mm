@@ -445,7 +445,7 @@ using namespace cv;
        && avgPixelIntensity.val[1] < 5 && avgPixelIntensity.val[2] < 10) {
         return avgPixelIntensity.val[0];
     }
-    if(isFlashOn && avgPixelIntensity.val[0] > 170 && avgPixelIntensity.val[0] < 230
+    if(isFlashOn && avgPixelIntensity.val[0] > 160 && avgPixelIntensity.val[0] < 230
        && avgPixelIntensity.val[2] < 20 && avgPixelIntensity.val[1] < 15) {
         
         return avgPixelIntensity.val[0];

@@ -3,37 +3,31 @@
 //  ImageLab
 //
 //  Created by Eric Larson
-//  Copyright © Eric Larson. All rights reserved.
+//  Copyright © 2016 Eric Larson. All rights reserved.
+//  Modified by London Kasper, Jeremy Waibel, Carys LeKander 2022
 //
-// Modified by London Kasper, Jeremy Waibel, Carys LeKander
-
 import UIKit
 import AVFoundation
 
 class ModuleAViewController: UIViewController   {
 
+    @IBOutlet weak var smileLabel: UILabel!
+    @IBOutlet weak var rightEyeLabel: UILabel!
+    @IBOutlet weak var leftEyeLabel: UILabel!
+    @IBOutlet weak var angleLabel: UILabel!
     //MARK: Class Properties
     var filters : [CIFilter]! = nil
-    var videoManager:VideoAnalgesic! = nil
-    let pinchFilterIndex = 2
-    //var detector:CIDetector! = nil
-    let bridge = OpenCVBridge()
-    
-    //MARK: Outlets in view
-    @IBOutlet weak var flashSlider: UISlider!
-    @IBOutlet weak var stageLabel: UILabel!
+    lazy var videoManager:VideoAnalgesic! = {
+        let tmpManager = VideoAnalgesic(mainView: self.view)
+        tmpManager.setCameraPosition(position: .back)
+        return tmpManager
+    }()
     
     lazy var detector:CIDetector! = {
         // create dictionary for face detection
-        // HINT: you need to manipulate these properties for better face detection efficiency
-        let optsDetector = [CIDetectorAccuracy:CIDetectorAccuracyHigh,
-                            CIDetectorTracking:true] as [String : Any]
-        
-        // setup a face detector in swift
-        let detector = CIDetector(ofType: CIDetectorTypeFace,
-                                  context: self.videoManager.getCIContext(), // perform on the GPU is possible
-            options: (optsDetector as [String : AnyObject]))
-        
+        let detector = CIDetector(ofType: CIDetectorTypeFace, context: self.videoManager.getCIContext(),
+                                  options: [CIDetectorAccuracy: CIDetectorAccuracyHigh, CIDetectorTracking:true, CIDetectorEyeBlink: true, CIDetectorSmile: true])
+        //tried to set up detectors but for some reason the smile and eye blink detectors don't seem to be working at all. Both always return false no matter what.
         return detector
     }()
     
@@ -41,24 +35,12 @@ class ModuleAViewController: UIViewController   {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // no background needed
         self.view.backgroundColor = nil
-        
-        // setup the OpenCV bridge nose detector, from file
-        self.bridge.loadHaarCascade(withFilename: "nose")
-        
-        self.videoManager = VideoAnalgesic(mainView: self.view)
-        self.videoManager.setCameraPosition(position: AVCaptureDevice.Position.front)
-        
-        // create dictionary for face detection
-        // HINT: you need to manipulate these properties for better face detection efficiency
-        let optsDetector = [CIDetectorAccuracy:CIDetectorAccuracyLow,CIDetectorTracking:true] as [String : Any]
-        
-        // setup a face detector in swift
-        self.detector = CIDetector(ofType: CIDetectorTypeFace,
-                                  context: self.videoManager.getCIContext(), // perform on the GPU if possible
-            options: (optsDetector as [String : AnyObject]))
         self.setupFilters()
-        self.videoManager.setProcessingBlock(newProcessBlock: self.processImageSwift)
+        
+        self.videoManager.setCameraPosition(position: .front)
+        self.videoManager.setProcessingBlock(newProcessBlock: self.processImage)
         
         if !videoManager.isRunning{
             videoManager.start()
@@ -66,141 +48,139 @@ class ModuleAViewController: UIViewController   {
     
     }
     
-    //MARK: Process image output
-    func processImageSwift(inputImage:CIImage) -> CIImage{
+    //MARK: Setup filtering
+    func setupFilters(){
+        filters = []
+        //set up distortion filters for eyes
+        let filterEyesL = CIFilter(name:"CIBumpDistortion")!
+        filterEyesL.setValue(-0.5, forKey: "inputScale")
+        filterEyesL.setValue(75, forKey: "inputRadius")
+        filters.append(filterEyesL)
         
-        // detect faces
-        let f = getFaces(img: inputImage)
+        let filterEyesR = CIFilter(name:"CIBumpDistortion")!
+        filterEyesR.setValue(-0.9, forKey: "inputScale")
+        filterEyesR.setValue(75, forKey: "inputRadius")
+        filters.append(filterEyesR)
+        //set up distortion filter for mouth
+        let filterMouth = CIFilter(name:"CIBumpDistortion")!
+        filterMouth.setValue(-0.8, forKey: "inputScale")
+        filterMouth.setValue(75, forKey: "inputRadius")
+        filters.append(filterMouth)
         
-        // if no faces, just return original image
-        if f.count == 0 { return inputImage }
-        
+    }
+    
+    //MARK: Apply filters and apply feature detectors
+    func applyFiltersToFaces(inputImage:CIImage,features:[CIFaceFeature])->CIImage{
         var retImage = inputImage
         
-        //-------------------Example 1----------------------------------
-        // if you just want to process on separate queue use this code
-        // this is a NON BLOCKING CALL, but any changes to the image in OpenCV cannot be displayed real time
-        /*
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) { () -> Void in
-            self.bridge.setImage(retImage, withBounds: retImage.extent, andContext: self.videoManager.getCIContext())
-            self.bridge.processImage()
+        //set up variables to assign later
+        var eyeCenterL = CGPoint()
+        let eyeRadL = 40
+        var eyeCenterR = CGPoint()
+        let eyeRadR = 40
+        
+        var mouthCenter = CGPoint()
+        let mouthRad = 60
+        
+        var faceAng:Float = 0.0
+        
+        for f in features { // for each face
+            //find the position of the left eye
+            eyeCenterL.x = f.leftEyePosition.x
+            eyeCenterL.y = f.leftEyePosition.y
+            
+            //find the position of the right eye
+            eyeCenterR.x = f.rightEyePosition.x
+            eyeCenterR.y = f.rightEyePosition.y
+            
+            //find the mouth position
+            mouthCenter.x = f.mouthPosition.x
+            mouthCenter.y = f.mouthPosition.y
+            
+            //find the angle of the face
+            faceAng = f.faceAngle
+            
+            print(faceAng) // for testing purposes-- seems to be extremely inconsistent
+            DispatchQueue.main.async { //allow us to update UI elements
+                self.angleLabel.text = "Face Angle: \(faceAng)"
+                if(!f.rightEyeClosed){
+                    self.rightEyeLabel.text = "Right Eye Open"
+                }
+                else{
+                    self.rightEyeLabel.text = "Right Eye Closed"//never detects it being closed
+                }
+                if(!f.leftEyeClosed){
+                    self.leftEyeLabel.text = "Left Eye Open"
+                }
+                else{
+                    self.leftEyeLabel.text = "Left Eye Closed"//never detects it being closed
+                }
+                if(f.hasSmile){
+                    self.smileLabel.text = "Smile Detected" //never detects a smile for some reason
+                }
+                else{
+                    self.smileLabel.text = "No Smile Detected"
+                }
+            }
+
+            if(f.rightEyeClosed && f.leftEyeClosed){
+                print("blinked!") //never gets here because both values are always false
+            }
+            if(f.hasSmile){
+                print("smiling") //never gets this far either
+            }
+            
+            //set the values for the eye filters
+            filters[0].setValue(CIVector(cgPoint: eyeCenterL), forKey: "inputCenter")
+            filters[0].setValue(eyeRadL, forKey: "inputRadius")
+            filters[1].setValue(CIVector(cgPoint: eyeCenterR), forKey: "inputCenter")
+            filters[1].setValue(eyeRadR, forKey: "inputRadius")
+            
+            // now the mouth info
+            filters[2].setValue(CIVector(cgPoint: mouthCenter), forKey: "inputCenter")
+            filters[2].setValue(mouthRad, forKey: "inputRadius")
+            
+            for filt in filters{
+                filt.setValue(retImage, forKey: kCIInputImageKey)
+                retImage = filt.outputImage!
+            }
         }
-         */
-        
-        //-------------------Example 2----------------------------------
-        // use this code if you are using OpenCV and want to overwrite the displayed image via OpenCV
-        // this is a BLOCKING CALL
-        /*
-        // FOR FLIPPED ASSIGNMENT, YOU MAY BE INTERESTED IN THIS EXAMPLE
-        self.bridge.setTransforms(self.videoManager.transform)
-        self.bridge.setImage(retImage, withBounds: retImage.extent, andContext: self.videoManager.getCIContext())
-        self.bridge.processImage()
-        retImage = self.bridge.getImage()
-         */
-        
-        //-------------------Example 3----------------------------------
-        //You can also send in the bounds of the face to ONLY process the face in OpenCV
-        // or any bounds to only process a certain bounding region in OpenCV
-        self.bridge.setTransforms(self.videoManager.transform)
-        self.bridge.setImage(retImage,
-                             withBounds: f[0].bounds, // the first face bounds
-                             andContext: self.videoManager.getCIContext())
-        
-        self.bridge.processImage()
-        retImage = self.bridge.getImageComposite() // get back opencv processed part of the image (overlayed on original)
-        
         return retImage
     }
     
-    //MARK: Setup Face Detection
     
     func getFaces(img:CIImage) -> [CIFaceFeature]{
         // this ungodly mess makes sure the image is the correct orientation
-        let optsFace = [CIDetectorImageOrientation:self.videoManager.ciOrientation]
+        let optsFace = [CIDetectorImageOrientation:self.videoManager.ciOrientation] //this might be the problem
         // get Face Features
         return self.detector.features(in: img, options: optsFace) as! [CIFaceFeature]
-        
     }
     
-    //MARK: Setup filtering
-    func setupFilters(){
-            filters = []
-            
-            // starting values for filter
-            let filterPinch = CIFilter(name:"CIBumpDistortion")!
-            filterPinch.setValue(-0.5, forKey: "inputScale")
-            filterPinch.setValue(75, forKey: "inputRadius")
-            filters.append(filterPinch)
-            
-    }
-        
-        //MARK: Apply filters and apply feature detectors
-    func applyFiltersToFaces(inputImage:CIImage,features:[CIFaceFeature])->CIImage{
-            var retImage = inputImage
-            var filterCenter = CGPoint() // for saving the center of face
-            var radius = 75
-            
-            for f in features { // for each face
-                //set where to apply filter
-                filterCenter.x = f.bounds.midX
-                filterCenter.y = f.bounds.midY
-                radius = Int(f.bounds.width/2) // for setting the radius of the bump
-                
-                //do for each filter (assumes all filters have property, "inputCenter")
-                for filt in filters{
-                    filt.setValue(retImage, forKey: kCIInputImageKey)
-                    filt.setValue(CIVector(cgPoint: filterCenter), forKey: "inputCenter")
-                    filt.setValue(radius, forKey: "inputRadius")
-                    //  also manipulate the radius of the filter based on face size!
-                    retImage = filt.outputImage!
-                }
-            }
-            return retImage
-    }
-        
     
-    // change the type of processing done in OpenCV
-    @IBAction func swipeRecognized(_ sender: UISwipeGestureRecognizer) {
-        switch sender.direction {
-        case .left:
-            self.bridge.processType += 1
-        case .right:
-            self.bridge.processType -= 1
-        default:
-            break
-            
-        }
+    //MARK: Process image output
+    func processImage(inputImage:CIImage) -> CIImage{
         
-        stageLabel.text = "Stage: \(self.bridge.processType)"
+        // detect faces
+        let faces = getFaces(img: inputImage)
+        
+        // if no faces, just return original image
+        if faces.count == 0 { return inputImage }
 
-    }
-    
-    //MARK: Convenience Methods for UI Flash and Camera Toggle
-    @IBAction func flash(_ sender: AnyObject) {
-        if(self.videoManager.toggleFlash()){
-            self.flashSlider.value = 1.0
-        }
-        else{
-            self.flashSlider.value = 0.0
-        }
-    }
-    
-    @IBAction func switchCamera(_ sender: AnyObject) {
-        self.videoManager.toggleCameraPosition()
-    }
-    
-    @IBAction func setFlashLevel(_ sender: UISlider) {
-        if(sender.value>0.0){
-            let val = self.videoManager.turnOnFlashwithLevel(sender.value)
-            if val {
-                print("Flash return, no errors.")
+        for f in faces{
+            
+            print(f.rightEyeClosed) // :( never true for some reason
+            if(f.hasSmile){
+                print("smile detected") //never gets here
+            }
+            if(f.leftEyeClosed && f.rightEyeClosed){
+                print("eyes shut") //never gets here
             }
         }
-        else if(sender.value==0.0){
-            self.videoManager.turnOffFlash()
-        }
+        
+        //otherwise apply the filters to the faces
+        return applyFiltersToFaces(inputImage: inputImage, features: faces)
     }
+    
 
    
 }
-
