@@ -103,7 +103,7 @@ class ModuleBViewController: UIViewController, ChartViewDelegate {
                 }
             }
 
-        let actualPeaks = Double(peaks.count)/2.3
+        let actualPeaks = Double(peaks.count)/2.0
         let beatsPerSecond = actualPeaks/(Double(currFrame)/30.0)
         let bpm = beatsPerSecond*60
         //print(beatsPerSecond*60-15)
